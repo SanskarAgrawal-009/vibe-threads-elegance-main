@@ -16,12 +16,12 @@ const Header = () => {
 
   return (
     <header className="bg-white sticky top-0 z-50 border-b border-gray-100 shadow-sm">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      
         {/* Top bar with promotional message */}
         <div className="bg-navy text-ivory text-center py-2 text-sm">
           Free shipping on orders over ₹6,250 | Hassle-free returns within 15 days
         </div>
-        
+      <div className="container">  
         {/* Main header */}
         <div className="flex items-center justify-between py-4">
           {/* Mobile menu button */}
