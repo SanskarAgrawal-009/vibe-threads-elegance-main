@@ -1,8 +1,8 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import { Request, Response } from 'express';
 import Product from '../models/Product';
 
 export const productController = {
-  getAllProducts: async (req: NextApiRequest, res: NextApiResponse) => {
+  getAllProducts: async (req: Request, res: Response) => {
     try {
       const products = await Product.find({});
       res.status(200).json(products);
@@ -11,7 +11,7 @@ export const productController = {
     }
   },
 
-  createProduct: async (req: NextApiRequest, res: NextApiResponse) => {
+  createProduct: async (req: Request, res: Response) => {
     try {
       const product = await Product.create(req.body);
       res.status(201).json(product);
@@ -20,9 +20,9 @@ export const productController = {
     }
   },
 
-  updateProduct: async (req: NextApiRequest, res: NextApiResponse) => {
+  updateProduct: async (req: Request, res: Response) => {
     try {
-      const { id } = req.query;
+      const { id } = req.params;
       const product = await Product.findByIdAndUpdate(
         id,
         req.body,
@@ -37,9 +37,9 @@ export const productController = {
     }
   },
 
-  deleteProduct: async (req: NextApiRequest, res: NextApiResponse) => {
+  deleteProduct: async (req: Request, res: Response) => {
     try {
-      const { id } = req.query;
+      const { id } = req.params;
       const product = await Product.findByIdAndDelete(id);
       if (!product) {
         return res.status(404).json({ error: 'Product not found' });

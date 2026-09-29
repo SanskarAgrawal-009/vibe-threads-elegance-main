@@ -1,142 +1,112 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Heart, ShoppingCart } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React, { useState, useEffect, useMemo } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { useCart } from '@/contexts/CartContext';
+import ProductCard from '@/components/ProductCard';
+import FilterBar, { FilterOptions } from '@/components/FilterBar';
+import { productService } from '@/services/productService';
+import { Product } from '@/data/products';
 
 const Women = () => {
-  const { addToCart, addToWishlist, isInWishlist } = useCart();
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [filters, setFilters] = useState<FilterOptions>({
+    subcategory: 'All',
+    sortBy: 'featured',
+    priceRange: 'all',
+    inStockOnly: false
+  });
 
-  const products = [
-    {
-      id: 201,
-      name: "Silk Evening Dress",
-      price: 20749, // Converted from $249.99
-      image: "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=400&h=500&fit=crop",
-      category: "Women"
-    },
-    {
-      id: 202,
-      name: "Cashmere Sweater",
-      price: 15769, // Converted from $189.99
-      image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=500&fit=crop",
-      category: "Women"
-    },
-    {
-      id: 203,
-      name: "Classic Wool Coat",
-      price: 24899, // Converted from $299.99
-      originalPrice: 33199, // Converted from $399.99
-      image: "https://images.unsplash.com/photo-1544022613-e87ca75a784a?w=400&h=500&fit=crop",
-      category: "Women"
-    },
-    {
-      id: 204,
-      name: "Elegant Midi Skirt",
-      price: 10789, // Converted from $129.99
-      image: "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=400&h=500&fit=crop",
-      category: "Women"
+  useEffect(() => {
+    const load = () => {
+      const items = productService.getProducts().filter((p) => p.category === 'Women');
+      setAllProducts(items);
+    };
+
+    load();
+    window.addEventListener('products_updated', load);
+    return () => window.removeEventListener('products_updated', load);
+  }, []);
+
+  const subcategories = useMemo(() => {
+    const subs = new Set<string>();
+    allProducts.forEach((p) => {
+      if (p.subcategory) subs.add(p.subcategory);
+    });
+    return Array.from(subs);
+  }, [allProducts]);
+
+  const filteredProducts = useMemo(() => {
+    let result = [...allProducts];
+
+    if (filters.subcategory !== 'All') {
+      result = result.filter((p) => p.subcategory === filters.subcategory);
     }
-  ];
 
-  const handleAddToCart = (product: any) => {
-    addToCart({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      image: product.image,
-      size: 'M',
-      color: 'Default',
-      category: product.category
-    });
-  };
+    if (filters.priceRange === 'under-5000') {
+      result = result.filter((p) => p.price < 5000);
+    } else if (filters.priceRange === '5000-15000') {
+      result = result.filter((p) => p.price >= 5000 && p.price <= 15000);
+    } else if (filters.priceRange === 'above-15000') {
+      result = result.filter((p) => p.price > 15000);
+    }
 
-  const handleWishlist = (product: any) => {
-    addToWishlist({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      image: product.image,
-      category: product.category
-    });
-  };
+    if (filters.sortBy === 'price-asc') {
+      result.sort((a, b) => a.price - b.price);
+    } else if (filters.sortBy === 'price-desc') {
+      result.sort((a, b) => b.price - a.price);
+    } else if (filters.sortBy === 'rating') {
+      result.sort((a, b) => b.rating - a.rating);
+    } else if (filters.sortBy === 'newest') {
+      result.sort((a, b) => (b.isNewArrival ? 1 : 0) - (a.isNewArrival ? 1 : 0));
+    }
+
+    return result;
+  }, [allProducts, filters]);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white font-inter select-none">
       <Header />
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-12"
-        >
-          <h1 className="font-playfair text-4xl md:text-5xl font-bold text-navy mb-4">
-            Women's Collection
-          </h1>
-          <p className="font-inter text-lg text-gray-600 max-w-2xl mx-auto">
-            Elegant and sophisticated pieces designed for the modern woman.
-          </p>
-        </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-          {products.map((product, index) => (
-            <motion.div
-              key={product.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="group bg-ivory rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300"
-            >
-              <div className="relative overflow-hidden">
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-80 object-cover group-hover:scale-110 transition-transform duration-500"
-                />
-                <div className="absolute top-4 right-4">
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => handleWishlist(product)}
-                    className={`bg-white/80 hover:bg-white transition-colors ${
-                      isInWishlist(product.id) ? 'text-red-500' : 'text-navy'
-                    }`}
-                  >
-                    <Heart className={`w-4 h-4 ${isInWishlist(product.id) ? 'fill-current' : ''}`} />
-                  </Button>
-                </div>
-              </div>
-              
-              <div className="p-6">
-                <h3 className="font-playfair text-lg font-semibold text-navy mt-1 mb-2">
-                  {product.name}
-                </h3>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-gold font-bold text-lg">₹{product.price}</span>
-                    {product.originalPrice && (
-                      <span className="text-gray-400 line-through text-sm">
-                        ₹{product.originalPrice}
-                      </span>
-                    )}
-                  </div>
-                  <Button
-                    size="sm"
-                    onClick={() => handleAddToCart(product)}
-                    className="bg-gold hover:bg-gold/90 text-white"
-                  >
-                    <ShoppingCart className="w-4 h-4 mr-2" />
-                    Add to Cart
-                  </Button>
-                </div>
-              </div>
-            </motion.div>
-          ))}
+      <main className="container mx-auto px-6 sm:px-12 py-10">
+        {/* Minimal Zara Page Header */}
+        <div className="mb-6">
+          <span className="text-[10px] tracking-[0.3em] font-semibold text-neutral-400 block mb-1 uppercase">
+            COLLECTION
+          </span>
+          <h1 className="font-syne font-black text-2xl sm:text-3xl tracking-[0.2em] text-black uppercase">
+            WOMAN
+          </h1>
         </div>
+
+        {/* Dynamic Filter & Sorting Bar */}
+        <FilterBar
+          subcategories={subcategories}
+          filters={filters}
+          onFilterChange={setFilters}
+          totalCount={filteredProducts.length}
+        />
+
+        {/* Product Grid: 2 columns mobile, 4 columns desktop */}
+        {filteredProducts.length === 0 ? (
+          <div className="text-center py-24 border border-neutral-100 my-8">
+            <h3 className="font-syne font-bold text-sm tracking-[0.15em] text-black uppercase mb-2">
+              NO PIECES MATCH CURRENT CRITERIA
+            </h3>
+            <button
+              onClick={() => setFilters({ subcategory: 'All', sortBy: 'featured', priceRange: 'all', inStockOnly: false })}
+              className="text-[11px] font-semibold text-black underline tracking-widest uppercase"
+            >
+              CLEAR ALL FILTERS
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+            {filteredProducts.map((product, index) => (
+              <ProductCard key={product.id} product={product} index={index} />
+            ))}
+          </div>
+        )}
       </main>
+
       <Footer />
     </div>
   );

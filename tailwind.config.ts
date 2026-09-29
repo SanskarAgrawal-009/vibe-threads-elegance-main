@@ -120,6 +120,10 @@ export default {
 			fontFamily: {
 				'playfair': ['Playfair Display', 'serif'],
 				'inter': ['Inter', 'sans-serif'],
+				'syne': ['Syne', 'sans-serif'],
+				'cinzel': ['Cinzel', 'serif'],
+				'italiana': ['Italiana', 'serif'],
+				'jakarta': ['Plus Jakarta Sans', 'sans-serif'],
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -150,6 +154,10 @@ export default {
 				'scale-in': {
 					'0%': { transform: 'scale(0.95)' },
 					'100%': { transform: 'scale(1)' },
+				},
+				'marquee': {
+					'0%': { transform: 'translateX(0%)' },
+					'100%': { transform: 'translateX(-50%)' }
 				}
 			},
 			animation: {
@@ -157,6 +165,7 @@ export default {
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'fade-in': 'fade-in 0.6s ease-out',
 				'scale-in': 'scale-in 0.3s ease-out',
+				'marquee': 'marquee 25s linear infinite',
 			}
 		}
 	},

@@ -1,108 +1,110 @@
-
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Heart, ShoppingCart } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React, { useState, useEffect, useMemo } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { useCart } from '@/contexts/CartContext';
-import { getNewArrivals } from '@/data/products';
+import ProductCard from '@/components/ProductCard';
+import FilterBar, { FilterOptions } from '@/components/FilterBar';
+import { productService } from '@/services/productService';
+import { Product } from '@/data/products';
 
 const NewArrivals = () => {
-  const { addToCart, addToWishlist, isInWishlist } = useCart();
-  const newArrivals = getNewArrivals();
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [filters, setFilters] = useState<FilterOptions>({
+    subcategory: 'All',
+    sortBy: 'newest',
+    priceRange: 'all',
+    inStockOnly: false
+  });
 
-  const handleAddToCart = (product: any) => {
-    addToCart({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      image: product.image,
-      size: 'M',
-      color: 'Default',
-      category: product.category
-    });
-  };
+  useEffect(() => {
+    const load = () => {
+      const items = productService.getProducts().filter((p) => p.isNewArrival);
+      setAllProducts(items);
+    };
 
-  const handleWishlist = (product: any) => {
-    addToWishlist({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      image: product.image,
-      category: product.category
+    load();
+    window.addEventListener('products_updated', load);
+    return () => window.removeEventListener('products_updated', load);
+  }, []);
+
+  const subcategories = useMemo(() => {
+    const subs = new Set<string>();
+    allProducts.forEach((p) => {
+      if (p.subcategory) subs.add(p.subcategory);
     });
-  };
+    return Array.from(subs);
+  }, [allProducts]);
+
+  const filteredProducts = useMemo(() => {
+    let result = [...allProducts];
+
+    if (filters.subcategory !== 'All') {
+      result = result.filter((p) => p.subcategory === filters.subcategory);
+    }
+
+    if (filters.priceRange === 'under-5000') {
+      result = result.filter((p) => p.price < 5000);
+    } else if (filters.priceRange === '5000-15000') {
+      result = result.filter((p) => p.price >= 5000 && p.price <= 15000);
+    } else if (filters.priceRange === 'above-15000') {
+      result = result.filter((p) => p.price > 15000);
+    }
+
+    if (filters.sortBy === 'price-asc') {
+      result.sort((a, b) => a.price - b.price);
+    } else if (filters.sortBy === 'price-desc') {
+      result.sort((a, b) => b.price - a.price);
+    } else if (filters.sortBy === 'rating') {
+      result.sort((a, b) => b.rating - a.rating);
+    }
+
+    return result;
+  }, [allProducts, filters]);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white font-inter select-none">
       <Header />
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mb-8"
-        >
-          <h1 className="font-playfair text-3xl md:text-4xl font-bold text-navy mb-4">New Arrivals</h1>
-          <p className="text-gray-600 font-inter">Discover our latest collection of premium fashion</p>
-        </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-          {newArrivals.map((product, index) => (
-            <motion.div
-              key={product.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="group bg-ivory rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300"
-            >
-              <div className="relative overflow-hidden">
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-80 object-cover group-hover:scale-110 transition-transform duration-500"
-                />
-                <div className="absolute top-4 left-4">
-                  <span className="bg-green-500 text-white px-2 py-1 text-xs font-semibold rounded">NEW</span>
-                </div>
-                <div className="absolute top-4 right-4">
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => handleWishlist(product)}
-                    className={`bg-white/80 hover:bg-white transition-colors ${
-                      isInWishlist(product.id) ? 'text-red-500' : 'text-navy'
-                    }`}
-                  >
-                    <Heart className={`w-4 h-4 ${isInWishlist(product.id) ? 'fill-current' : ''}`} />
-                  </Button>
-                </div>
-              </div>
-              
-              <div className="p-6">
-                <span className="text-xs text-gray-500 font-inter uppercase tracking-wide">
-                  {product.category}
-                </span>
-                <h3 className="font-playfair text-lg font-semibold text-navy mt-1 mb-2">
-                  {product.name}
-                </h3>
-                <div className="flex items-center justify-between">
-                  <span className="text-gold font-bold text-lg">₹{product.price.toLocaleString()}</span>
-                  <Button
-                    size="sm"
-                    onClick={() => handleAddToCart(product)}
-                    className="bg-gold hover:bg-gold/90 text-white"
-                  >
-                    <ShoppingCart className="w-4 h-4 mr-2" />
-                    Add to Cart
-                  </Button>
-                </div>
-              </div>
-            </motion.div>
-          ))}
+      <main className="container mx-auto px-6 sm:px-12 py-10">
+        {/* Minimal Zara Page Header */}
+        <div className="mb-6">
+          <span className="text-[10px] tracking-[0.3em] font-semibold text-neutral-400 block mb-1 uppercase">
+            COLLECTION
+          </span>
+          <h1 className="font-syne font-black text-2xl sm:text-3xl tracking-[0.2em] text-black uppercase">
+            NEW IN
+          </h1>
         </div>
+
+        {/* Dynamic Filter & Sorting Bar */}
+        <FilterBar
+          subcategories={subcategories}
+          filters={filters}
+          onFilterChange={setFilters}
+          totalCount={filteredProducts.length}
+        />
+
+        {/* Product Grid: 2 columns mobile, 4 columns desktop */}
+        {filteredProducts.length === 0 ? (
+          <div className="text-center py-24 border border-neutral-100 my-8">
+            <h3 className="font-syne font-bold text-sm tracking-[0.15em] text-black uppercase mb-2">
+              NO PIECES MATCH CURRENT CRITERIA
+            </h3>
+            <button
+              onClick={() => setFilters({ subcategory: 'All', sortBy: 'featured', priceRange: 'all', inStockOnly: false })}
+              className="text-[11px] font-semibold text-black underline tracking-widest uppercase"
+            >
+              CLEAR ALL FILTERS
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+            {filteredProducts.map((product, index) => (
+              <ProductCard key={product.id} product={product} index={index} />
+            ))}
+          </div>
+        )}
       </main>
+
       <Footer />
     </div>
   );

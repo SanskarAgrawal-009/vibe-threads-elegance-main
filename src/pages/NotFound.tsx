@@ -1,25 +1,39 @@
-import { useLocation } from "react-router-dom";
-import { useEffect } from "react";
+import React from "react";
+import { Link } from "react-router-dom";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
-const NotFound = () => {
-  const location = useLocation();
-
-  useEffect(() => {
-    console.error(
-      "404 Error: User attempted to access non-existent route:",
-      location.pathname
-    );
-  }, [location.pathname]);
-
+export const NotFound: React.FC = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">404</h1>
-        <p className="text-xl text-gray-600 mb-4">Oops! Page not found</p>
-        <a href="/" className="text-blue-500 hover:text-blue-700 underline">
-          Return to Home
-        </a>
-      </div>
+    <div className="min-h-screen bg-white font-inter select-none flex flex-col justify-between">
+      <Header />
+
+      <main className="container mx-auto px-6 py-28 text-center max-w-md my-auto">
+        <span className="text-[10px] tracking-[0.35em] font-semibold text-neutral-400 uppercase block mb-2">
+          ERROR 404
+        </span>
+        <h1 className="font-syne font-black text-5xl sm:text-6xl text-black tracking-[0.15em] uppercase mb-4">
+          PAGE NOT FOUND
+        </h1>
+        <p className="text-xs text-neutral-500 mb-8 leading-relaxed">
+          The requested page or collection does not exist or may have been relocated.
+        </p>
+
+        <div className="flex flex-col sm:flex-row justify-center gap-3">
+          <Link to="/">
+            <button className="w-full sm:w-auto bg-black hover:bg-neutral-800 text-white font-medium text-[11px] tracking-[0.2em] px-8 py-3.5 uppercase transition-all shadow-xs">
+              RETURN TO HOME
+            </button>
+          </Link>
+          <Link to="/new-arrivals">
+            <button className="w-full sm:w-auto border border-neutral-300 hover:border-black text-black font-semibold text-[11px] tracking-[0.2em] px-8 py-3.5 uppercase transition-colors">
+              NEW ARRIVALS
+            </button>
+          </Link>
+        </div>
+      </main>
+
+      <Footer />
     </div>
   );
 };

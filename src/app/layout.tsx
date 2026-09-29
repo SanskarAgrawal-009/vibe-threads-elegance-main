@@ -1,6 +1,6 @@
 export const metadata = {
-  title: 'Vibe Threads',
-  description: 'Premium Fashion E-commerce Platform',
+  title: 'ELEGANCE THREADS',
+  description: 'Minimalist Luxury Fashion & Haute Couture',
 }
 
 export default function RootLayout({
